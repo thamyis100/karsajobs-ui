@@ -1,0 +1,39 @@
+version: 2.1
+
+executors:
+  docker-executor:
+    docker:
+      - image: docker:20.10
+
+jobs:
+  lint-dockerfile:
+    docker:
+      - image: hadolint/hadolint:latest
+    steps:
+      - checkout
+      - run:
+          name: Lint Dockerfile
+          command: hadolint Dockerfile
+
+  build-app-karsajobs-ui:
+    docker:
+      - image: docker:20.10
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.8
+      - run:
+          name: Build and Push Docker Image
+          command: |
+            docker login --username thamyis100 --password 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 ghcr.io
+            docker build -t ghcr.io/thamyis100/karsajobs-ui:latest .
+            docker push ghcr.io/thamyis100/karsajobs-ui:latest
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - lint-dockerfile
+      - build-app-karsajobs-ui:
+          requires:
+            - lint-dockerfile
